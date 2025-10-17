@@ -22,6 +22,9 @@ wget -q https://repo1.maven.org/maven2/org/apache/commons/commons-pool2/2.11.1/c
 
 wget https://repo1.maven.org/maven2/org/apache/commons/commons-pool2/2.11.1/commons-pool2-2.11.1.jar -P /opt/spark/jars
 
+wget https://repo1.maven.org/maven2/org/apache/commons/commons-pool2/2.11.1/commons-pool2-2.11.1.jar \
+     -P /opt/spark/jars/
+
 echo "Setting proper permissions..."
 chmod 644 *.jar
 
