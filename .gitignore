@@ -1,0 +1,46 @@
+# Data and generated files
+storage/
+data/
+output/
+logs/
+
+# Spark temporary files
+*_temporary/
+_temporary/
+spark-warehouse/
+metastore_db/
+derby.log
+checkpoints/
+
+# Parquet files
+*.parquet
+_SUCCESS/
+part-*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.ipynb_checkpoints/
+
+# Java
+*.class
+*.jar
+
+# Docker
+docker-data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env

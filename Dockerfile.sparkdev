@@ -1,0 +1,57 @@
+FROM ubuntu:22.04
+
+# Install basics
+RUN apt-get update && apt-get install -y \
+    openjdk-11-jdk \
+    python3 python3-pip \
+    openssh-server \
+    curl wget git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV PATH=$JAVA_HOME/bin:$PATH
+ENV SPARK_VERSION=3.4.0
+ENV HADOOP_VERSION=3
+
+# Install Spark
+RUN wget https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz \
+    && tar xvf spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz -C /opt/ \
+    && mv /opt/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} /opt/spark \
+    && rm spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
+
+ENV SPARK_HOME=/opt/spark
+ENV PATH=$SPARK_HOME/bin:$PATH
+
+# Add Hadoop AWS and AWS SDK bundle for S3/MinIO access
+RUN wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar -P /opt/spark/jars/ && \
+    wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.661/aws-java-sdk-bundle-1.12.661.jar -P /opt/spark/jars/
+
+
+# Add Spark Kafka connector jars
+RUN wget https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/3.4.0/spark-sql-kafka-0-10_2.12-3.4.0.jar -P /opt/spark/jars/ && \
+    wget https://repo1.maven.org/maven2/org/apache/spark/spark-token-provider-kafka-0-10_2.12/3.4.0/spark-token-provider-kafka-0-10_2.12-3.4.0.jar -P /opt/spark/jars/ && \
+    wget https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.4.0/kafka-clients-3.4.0.jar -P /opt/spark/jars/
+    
+
+# Install Python libraries
+RUN pip install pyspark==3.4.0 jupyter pandas matplotlib findspark boto3 minio kafka-python
+
+# Setup SSH
+RUN mkdir /var/run/sshd && \
+    useradd -ms /bin/bash developer && \
+    echo 'developer:developer' | chpasswd
+
+# Ports
+EXPOSE 22 8888 4040
+
+# Enable and harden SSH forwarding + keepalives
+RUN sed -i 's/^#\?PasswordAuthentication .*/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/^#\?PermitRootLogin .*/PermitRootLogin no/' /etc/ssh/sshd_config && \
+    sed -i 's/^#\?AllowTcpForwarding .*/AllowTcpForwarding yes/' /etc/ssh/sshd_config && \
+    sed -i 's/^#\?GatewayPorts .*/GatewayPorts yes/' /etc/ssh/sshd_config && \
+    printf "\nClientAliveInterval 60\nClientAliveCountMax 3\nTCPKeepAlive yes\n" >> /etc/ssh/sshd_config
+
+    
+# Start SSH service and Jupyter
+CMD service ssh start && jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
