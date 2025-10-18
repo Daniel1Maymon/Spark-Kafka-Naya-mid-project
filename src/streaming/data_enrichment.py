@@ -69,14 +69,10 @@ Process Steps:
 8. Start the streaming query and wait for termination
 """
 from pyspark.sql import SparkSession, DataFrame, Row
-from kafka import KafkaProducer
-import json
-from typing import Dict, Any, List
-import random
-import time
-import uuid
-from datetime import datetime, timezone
 from pyspark.sql.functions import to_json, when, col, struct
+from pyspark.sql.streaming import query
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
+from pyspark.sql.functions import col, from_json
 
 # ------------------------------------------------------
 # 1. Initialize SparkSession (with S3 and Kafka configuration)
@@ -148,11 +144,6 @@ raw_stream_df.printSchema()
 # ------------------------------------------------------
 # 3. Parse JSON payloads from Kafka into structured columns
 # ------------------------------------------------------
-
-from pyspark.sql.streaming import query
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
-from pyspark.sql.functions import col, from_json
-
 # Define the JSON schema based on the DataGenerator output
 event_schema: StructType = StructType([
     StructField("event_id", StringType(), True),

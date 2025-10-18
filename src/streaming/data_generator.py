@@ -49,7 +49,7 @@ Process Steps:
 from pyspark.sql import SparkSession, DataFrame, Row
 from kafka import KafkaProducer
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any
 import random
 import time
 import uuid
